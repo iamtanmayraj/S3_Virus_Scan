@@ -7,5 +7,24 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <groupId>com.javatpoint.application1</groupId>
     <artifactId>my-app</artifactId>
     <version>1</version>
+    <packaging>war</packaging>
     <description>My First Web Application</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                    <webXml>target/web.xml</webXml>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp</directory>
+                            <filtering>true</filtering>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
