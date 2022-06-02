@@ -7,5 +7,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <groupId>com.javatpoint.application1</groupId>
     <artifactId>my-app</artifactId>
     <version>1</version>
+    <packaging>war</packaging>
+    <description>My First Web Application</description>
 
 </project>
