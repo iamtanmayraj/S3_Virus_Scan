@@ -19,7 +19,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <webXml>target/web.xml</webXml>
                     <webResources>
                         <resource>
-                            <directory>src/main/webapp</directory>
+                            <directory>src</directory>
                             <filtering>true</filtering>
                         </resource>
                     </webResources>
