@@ -1,3 +1,7 @@
+provider "aws" {
+  region = "us-east-1"  # Set your desired AWS region
+}
+
 resource "aws_iam_role" "lambda_role" {
 name   = "iam_role_lambda_helloworld"
 assume_role_policy = <<EOF
