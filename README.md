@@ -1,2 +1,2 @@
 # helloworld
-Sample Java Application
+Sample python Application
