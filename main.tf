@@ -1,5 +1,5 @@
 resource "aws_iam_role" "lambda_role" {
-name   = "Iam role for Python Lambda"
+name   = "iam_role_lambda_helloworld"
 assume_role_policy = <<EOF
 {
  "Version": "2012-10-17",
