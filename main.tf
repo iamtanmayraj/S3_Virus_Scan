@@ -1,5 +1,5 @@
 resource "aws_iam_role" "lambda_role" {
-name   = "Spacelift_Test_Lambda_Function_Role"
+name   = "Iam role for Python Lambda"
 assume_role_policy = <<EOF
 {
  "Version": "2012-10-17",
@@ -53,7 +53,7 @@ output_path = "${path.module}/python/hello-python.zip"
 
 resource "aws_lambda_function" "terraform_lambda_func" {
 filename                       = "${path.module}/python/hello-python.zip"
-function_name                  = "Spacelift_Test_Lambda_Function"
+function_name                  = "Hello_World_AWS_Marketplace"
 role                           = aws_iam_role.lambda_role.arn
 handler                        = "index.lambda_handler"
 runtime                        = "python3.8"
