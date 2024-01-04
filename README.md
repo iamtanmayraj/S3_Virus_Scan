@@ -7,7 +7,7 @@
   - run the workflow **deploy_lambda**
 
 **Run the application locally**
-  - ```bash
+```bash
   pip install -r requirements.txt
   python virus_check.py
 ```
