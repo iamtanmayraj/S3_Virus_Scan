@@ -1,0 +1,15 @@
+# Makefile : 
+
+# Define targets
+# all: install test
+
+install:
+    pip install -r requirements.txt
+
+# test:
+#     python tests.py
+
+# clean:
+#     rm -rf __pycache__
+
+# .PHONY: all install test clean
