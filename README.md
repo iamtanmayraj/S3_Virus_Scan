@@ -1,2 +1,2 @@
-# helloworld
+# hello Python
 Sample python Application
