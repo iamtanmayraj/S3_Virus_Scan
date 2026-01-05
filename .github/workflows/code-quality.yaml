@@ -1,0 +1,122 @@
+name: Code Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-lint:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pylint flake8 black mypy || true
+
+      - name: Python Syntax Check
+        run: |
+          python -m py_compile python/virus_check.py
+          echo "✓ Python syntax is valid"
+
+      - name: Check code formatting with Black
+        continue-on-error: true
+        run: |
+          if command -v black &> /dev/null; then
+            black --check python/*.py || echo "⚠ Code formatting issues found. Run 'black python/*.py' to fix."
+          else
+            echo "⚠ Black not installed, skipping format check"
+          fi
+
+      - name: Lint with Flake8
+        continue-on-error: true
+        run: |
+          if command -v flake8 &> /dev/null; then
+            flake8 python/*.py --max-line-length=120 --extend-ignore=E203,W503 || true
+          else
+            echo "⚠ Flake8 not installed, skipping lint check"
+          fi
+
+      - name: Type checking with mypy
+        continue-on-error: true
+        run: |
+          if command -v mypy &> /dev/null; then
+            mypy python/virus_check.py --ignore-missing-imports || true
+          else
+            echo "⚠ mypy not installed, skipping type check"
+          fi
+
+  terraform-validate:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+          terraform_wrapper: false
+
+      - name: Terraform Format Check
+        run: |
+          terraform fmt -check -recursive
+          echo "✓ Terraform formatting is valid"
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: |
+          terraform validate -no-color
+          echo "✓ Terraform validation passed"
+
+      - name: Terraform Security Scan
+        continue-on-error: true
+        run: |
+          if command -v tfsec &> /dev/null; then
+            tfsec . || echo "⚠ Security issues found by tfsec"
+          else
+            echo "⚠ tfsec not installed, skipping security scan"
+          fi
+
+  yaml-lint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Lint YAML files
+        uses: karancode/yaml-linter@v0.5.0
+        with:
+          yaml_file_or_dir: '.github/workflows'
+          yaml_config_file: '.yamllint.yml'
+          yaml_parse: true
+          yaml_schema: true
+        continue-on-error: true

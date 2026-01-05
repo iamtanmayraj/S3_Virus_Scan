@@ -1,15 +1,54 @@
-# Makefile : 
+# Makefile for S3 Virus Scanner
 
-# Define targets
-# all: install test
+.PHONY: help install clean format lint terraform-init terraform-plan terraform-apply terraform-destroy package-lambda
 
-install:
-    pip install -r requirements.txt
+help: ## Show this help message
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Available targets:'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# test:
-#     python tests.py
+install: ## Install Python dependencies
+	pip install -r requirements.txt
 
-# clean:
-#     rm -rf __pycache__
+clean: ## Clean up generated files and caches
+	rm -rf __pycache__/
+	rm -rf python/__pycache__/
+	rm -rf python/*.zip
+	rm -rf .terraform/
+	rm -f *.tfstate
+	rm -f *.tfstate.backup
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 
-# .PHONY: all install test clean
+format: ## Format Python code with black (if installed)
+	@if command -v black > /dev/null; then \
+		black python/*.py; \
+	else \
+		echo "black not installed. Install with: pip install black"; \
+	fi
+
+lint: ## Lint Python code with pylint (if installed)
+	@if command -v pylint > /dev/null; then \
+		pylint python/*.py; \
+	else \
+		echo "pylint not installed. Install with: pip install pylint"; \
+	fi
+
+terraform-init: ## Initialize Terraform
+	terraform init
+
+terraform-plan: ## Run Terraform plan
+	terraform plan
+
+terraform-apply: ## Apply Terraform configuration
+	terraform apply
+
+terraform-destroy: ## Destroy Terraform resources
+	terraform destroy
+
+package-lambda: ## Package Lambda function code
+	cd python && zip -r lambda-function.zip . -x "*.pyc" -x "__pycache__/*" -x "*.zip"
+
+test-local: ## Test the Lambda function locally (requires AWS credentials and ClamAV)
+	@echo "Note: This requires ClamAV to be installed and AWS credentials configured"
+	python -c "from python.virus_check import lambda_handler; print(lambda_handler({}, None))"

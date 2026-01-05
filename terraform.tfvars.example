@@ -1,0 +1,13 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# S3 Bucket Configuration
+# Set the bucket name you want to scan
+# This can also be set via the S3_BUCKET_NAME environment variable in Lambda
+s3_bucket_name = "your-s3-bucket-name"
+
+# Lambda Function Configuration
+lambda_function_name = "s3-virus-scanner"
+lambda_timeout       = 900  # 15 minutes (max 900 seconds)
+lambda_memory_size   = 1024 # 1 GB
+lambda_runtime       = "python3.11"

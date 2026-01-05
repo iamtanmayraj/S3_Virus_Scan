@@ -1,30 +1,115 @@
-name: Deploy Lambda
+name: Deploy Lambda Function
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      aws_region:
+        description: 'AWS Region'
+        required: true
+        type: string
+        default: 'us-east-1'
+      lambda_function_name:
+        description: 'Lambda Function Name'
+        required: true
+        type: string
+        default: 's3-virus-scanner'
+      skip_validation:
+        description: 'Skip code validation'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    name: 'Deploy Lambda Function'
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Validate Python code
+        if: inputs.skip_validation == false
+        run: |
+          python -m py_compile python/virus_check.py || exit 1
+          echo "Python syntax validation passed"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: your-aws-region
+          aws-region: ${{ inputs.aws_region }}
 
-      - name: Zip Lambda Code
+      - name: Verify Lambda function exists
+        id: verify_function
         run: |
-          cd path/to/your/lambda/code
-          zip -r lambda-code.zip .
+          if aws lambda get-function --function-name ${{ inputs.lambda_function_name }} --region ${{ inputs.aws_region }} > /dev/null 2>&1; then
+            echo "function_exists=true" >> $GITHUB_OUTPUT
+            echo "Lambda function '${{ inputs.lambda_function_name }}' exists"
+          else
+            echo "function_exists=false" >> $GITHUB_OUTPUT
+            echo "ERROR: Lambda function '${{ inputs.lambda_function_name }}' does not exist"
+            echo "Please create the function first using the Terraform workflow"
+            exit 1
+          fi
 
-      - name: Deploy Lambda Function
+      - name: Prepare Lambda package
+        run: |
+          cd python
+          # Remove any existing zip files
+          rm -f *.zip
+          # Create zip file excluding unnecessary files
+          zip -r lambda-function.zip . \
+            -x "*.pyc" \
+            -x "__pycache__/*" \
+            -x "*.zip" \
+            -x ".DS_Store" \
+            -x "*.log"
+          cd ..
+          echo "Lambda package created: python/lambda-function.zip"
+          ls -lh python/lambda-function.zip
+
+      - name: Deploy Lambda Function Code
         run: |
           aws lambda update-function-code \
-            --function-name YourLambdaFunctionName \
-            --zip-file fileb://path/to/your/lambda/code/lambda-code.zip
+            --function-name ${{ inputs.lambda_function_name }} \
+            --zip-file fileb://python/lambda-function.zip \
+            --region ${{ inputs.aws_region }}
+
+      - name: Wait for Lambda update
+        run: |
+          echo "Waiting for Lambda function to be updated..."
+          aws lambda wait function-updated \
+            --function-name ${{ inputs.lambda_function_name }} \
+            --region ${{ inputs.aws_region }}
+          echo "Lambda function updated successfully"
+
+      - name: Get Lambda function info
+        run: |
+          echo "=== Lambda Function Information ==="
+          aws lambda get-function \
+            --function-name ${{ inputs.lambda_function_name }} \
+            --region ${{ inputs.aws_region }} \
+            --query 'Configuration.[FunctionName,FunctionArn,Runtime,LastModified,CodeSize]' \
+            --output table
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up temporary files..."
+          rm -f python/lambda-function.zip || true
