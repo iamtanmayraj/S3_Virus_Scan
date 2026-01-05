@@ -1,6 +1,6 @@
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -57,7 +57,7 @@ variable "lambda_runtime" {
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
   name = "iam_role_${var.lambda_function_name}"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

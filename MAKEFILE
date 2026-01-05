@@ -46,6 +46,12 @@ terraform-apply: ## Apply Terraform configuration
 terraform-destroy: ## Destroy Terraform resources
 	terraform destroy
 
+terraform-fmt: ## Format Terraform files
+	terraform fmt -recursive
+
+terraform-fmt-check: ## Check Terraform formatting
+	terraform fmt -check -recursive
+
 package-lambda: ## Package Lambda function code
 	cd python && zip -r lambda-function.zip . -x "*.pyc" -x "__pycache__/*" -x "*.zip"
 
