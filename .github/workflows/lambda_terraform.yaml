@@ -60,7 +60,19 @@ jobs:
       # Terraform Format Check
       - name: Terraform Format Check
         id: fmt
-        run: terraform fmt -check -recursive
+        run: |
+          set +e  # Temporarily disable exit on error to capture exit code
+          terraform fmt -check -recursive
+          FORMAT_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          if [ $FORMAT_EXIT_CODE -eq 0 ]; then
+            echo "✓ Terraform formatting is valid"
+          else
+            echo "::error::Terraform files need formatting"
+            echo "❌ Some Terraform files are not properly formatted."
+            echo "To fix locally, run: terraform fmt -recursive"
+          fi
         continue-on-error: true
 
       # Terraform Init
