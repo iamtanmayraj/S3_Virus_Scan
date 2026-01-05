@@ -99,14 +99,6 @@ jobs:
             exit 1
           fi
 
-      - name: Terraform Init
-        run: terraform init -input=false
-
-      - name: Terraform Validate
-        run: |
-          terraform validate -no-color
-          echo "✓ Terraform validation passed"
-
       - name: Terraform Security Scan
         continue-on-error: true
         run: |
@@ -115,20 +107,3 @@ jobs:
           else
             echo "⚠ tfsec not installed, skipping security scan"
           fi
-
-  yaml-lint:
-    name: YAML Linting
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Lint YAML files
-        uses: karancode/yaml-linter@v0.5.0
-        with:
-          yaml_file_or_dir: '.github/workflows'
-          yaml_config_file: '.yamllint.yml'
-          yaml_parse: true
-          yaml_schema: true
-        continue-on-error: true

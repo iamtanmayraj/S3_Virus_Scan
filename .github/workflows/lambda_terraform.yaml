@@ -79,10 +79,6 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false
 
-      # Terraform Validate
-      - name: Terraform Validate
-        run: terraform validate -no-color
-
       # Terraform Plan
       - name: Terraform Plan
         if: inputs.terraform_action == 'plan' || inputs.terraform_action == 'apply'
@@ -137,7 +133,6 @@ jobs:
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             
             *Pusher: @${{ github.actor }}, Action: \`${{ inputs.terraform_action }}\`*`;

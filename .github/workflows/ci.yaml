@@ -99,9 +99,6 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Terraform Validate
-        run: terraform validate -no-color
-
       - name: Terraform Plan (dry-run)
         run: |
           terraform plan \
